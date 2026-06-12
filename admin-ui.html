@@ -645,6 +645,7 @@
                     </div>
                 </div>
                 <button class="btn btn-primary btn-sm" onclick="setSwapThreshold()">修改 Swap 阈值</button>
+                <button class="btn btn-warning btn-sm" onclick="forceDistributeTax()" style="margin-top:10px;">⚡ 强制税收分配</button>
             </div>
         </div>
 
@@ -987,7 +988,10 @@
         "function withdrawTokens()",
         "function transferOwnership(address newOwner)",
         "function renounceOwnership()",
-        "function claimDividend()"
+        "function claimDividend()",
+        "function forceDistributeTax()",
+        "function manualDepositDividendBNB() payable",
+        "function manualDepositDividendUSDT(uint256 amount)"
     ];
 
     const DIVIDEND_ABI = [
@@ -1337,7 +1341,7 @@
                 try {
                     const usdtAddr = dividendRewardTokenAddr !== ethers.constants.AddressZero
                         ? dividendRewardTokenAddr
-                        : await dividendContract.usdtToken();
+                        : await dividendContract.rewardToken();
                     const usdtErc20 = new ethers.Contract(usdtAddr, ["function balanceOf(address) view returns (uint256)"], provider);
                     const balance = await usdtErc20.balanceOf(dividendAddr);
                     divUsdtBalance = ethers.utils.formatUnits(balance, 18); // BSC USDT = 18 decimals
@@ -1467,6 +1471,11 @@
         if (!val) { alert('请输入阈值！'); return; }
         const threshold = ethers.utils.parseEther(val);
         await adminCall('setSwapThreshold', [threshold]);
+    }
+
+    async function forceDistributeTax() {
+        if (!confirm('确认强制触发税收分配？这会把合约中累积的税收代币按比例分配到营销/销毁/分红/LP。')) return;
+        await adminCall('forceDistributeTax', []);
     }
 
     // ============ Mint 价格管理 ============
@@ -1693,13 +1702,13 @@
     // ============ BNB 分红模式：存入/提取 ============
 
     async function depositBNBToDividend() {
-        if (!dividendContract || !signer) { alert('请先加载合约并连接钱包！'); return; }
+        if (!tokenContract || !signer) { alert('请先加载合约并连接钱包！'); return; }
         const amount = document.getElementById('divDepositBnbAmount').value.trim();
         if (!amount || parseFloat(amount) <= 0) { alert('请输入有效的 BNB 金额！'); return; }
         if (!confirm(`确认向分红合约存入 ${amount} BNB？`)) return;
         try {
             setStatus('存入 BNB 到分红合约... 请在钱包确认', 'info');
-            const tx = await dividendContract.deposit({ value: ethers.utils.parseEther(amount) });
+            const tx = await tokenContract.manualDepositDividendBNB({ value: ethers.utils.parseEther(amount) });
             setStatus(`交易已提交，等待确认... Tx: ${tx.hash}`, 'info');
             await tx.wait();
             setStatus('BNB 存入成功！', 'success');
@@ -1723,15 +1732,15 @@
     // ============ USDT 分红模式：存入 ============
 
     async function depositUSDTToDividend() {
-        if (!dividendContract || !signer) { alert('请先加载合约并连接钱包！'); return; }
+        if (!tokenContract || !signer) { alert('请先加载合约并连接钱包！'); return; }
         const amount = document.getElementById('divDepositUsdtAmount').value.trim();
         if (!amount || parseFloat(amount) <= 0) { alert('请输入有效的 USDT 金额！'); return; }
-        if (!confirm(`确认向分红合约存入 ${amount} USDT？（需先 approve 再 depositUSDT）`)) return;
+        if (!confirm(`确认向分红合约存入 ${amount} USDT？（需先 approve 主合约，再调用 manualDepositDividendUSDT）`)) return;
         try {
             // 获取 USDT 地址
             const usdtAddr = dividendRewardTokenAddr !== ethers.constants.AddressZero
                 ? dividendRewardTokenAddr
-                : await dividendContract.usdtToken();
+                : await dividendContract.rewardToken();
             const usdtErc20 = new ethers.Contract(usdtAddr, [
                 "function approve(address spender, uint256 amount) returns (bool)",
                 "function allowance(address owner, address spender) view returns (uint256)"
@@ -1739,19 +1748,19 @@
 
             const usdtAmount = ethers.utils.parseUnits(amount, 18); // BSC USDT = 18 decimals
 
-            // 检查并设置 approve
-            const allowance = await usdtErc20.allowance(connectedAddress, dividendAddr);
+            // 检查并设置 approve — 注意是对主合约 approve，由主合约做 transferFrom
+            const allowance = await usdtErc20.allowance(connectedAddress, tokenAddr);
             if (allowance.lt(usdtAmount)) {
-                setStatus('Approve USDT... 请在钱包确认', 'info');
-                const approveTx = await usdtErc20.approve(dividendAddr, usdtAmount);
+                setStatus('Approve USDT 给主合约... 请在钱包确认', 'info');
+                const approveTx = await usdtErc20.approve(tokenAddr, usdtAmount);
                 setStatus('等待 Approve 确认...', 'info');
                 await approveTx.wait();
                 setStatus('Approve 成功，正在存入...', 'info');
             }
 
-            // 调用 depositUSDT
+            // 调用主合约的 manualDepositDividendUSDT（内部做 transferFrom + depositUSDT）
             setStatus('存入 USDT 到分红合约... 请在钱包确认', 'info');
-            const tx = await dividendContract.depositUSDT(usdtAmount);
+            const tx = await tokenContract.manualDepositDividendUSDT(usdtAmount);
             setStatus(`交易已提交，等待确认... Tx: ${tx.hash}`, 'info');
             await tx.wait();
             setStatus('USDT 存入成功！', 'success');

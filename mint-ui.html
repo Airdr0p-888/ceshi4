@@ -528,8 +528,8 @@
         // 分红合约 ABI（用于直接查询未领取分红）
         const DIVIDEND_ABI = [
             "function getClaimableDividend(address) view returns (uint256)",
-            "function totalDividend() view returns (uint256)",
-            "function distributedAmount() view returns (uint256)"
+            "function totalDividends() view returns (uint256)",
+            "function getUnpaidDividends() view returns (uint256)"
         ];
 
         // ============ 钱包检测与选择 ============
@@ -989,19 +989,19 @@
                     const distributorAddr = await contract.dividendDistributor();
                     dividendContract = new ethers.Contract(distributorAddr, DIVIDEND_ABI, signer);
 
-                    const [totalDiv, distributed] = await Promise.all([
-                        dividendContract.totalDividend().catch(() => ethers.BigNumber.from(0)),
-                        dividendContract.distributedAmount().catch(() => ethers.BigNumber.from(0))
+                    const [totalDiv, unpaidBalance] = await Promise.all([
+                        dividendContract.totalDividends().catch(() => ethers.BigNumber.from(0)),
+                        dividendContract.getUnpaidDividends().catch(() => ethers.BigNumber.from(0))
                     ]);
 
                     const totalDisplay = isBNBMode 
                         ? parseFloat(ethers.utils.formatEther(totalDiv))
                         : parseFloat(ethers.utils.formatUnits(totalDiv, 18)); // BSC USDT = 18 decimals
-                    const distDisplay = isBNBMode
-                        ? parseFloat(ethers.utils.formatEther(distributed))
-                        : parseFloat(ethers.utils.formatUnits(distributed, 18)); // BSC USDT = 18 decimals
+                    const unpaidDisplay = isBNBMode
+                        ? parseFloat(ethers.utils.formatEther(unpaidBalance))
+                        : parseFloat(ethers.utils.formatUnits(unpaidBalance, 18)); // BSC USDT = 18 decimals
                     document.getElementById('dividendDetail').textContent =
-                        '池总分红: ' + totalDisplay.toFixed(4) + ' ' + currencySymbol + ' | 已分配: ' + distDisplay.toFixed(4) + ' ' + currencySymbol;
+                        '池总分红: ' + totalDisplay.toFixed(4) + ' ' + currencySymbol + ' | 池内余额: ' + unpaidDisplay.toFixed(4) + ' ' + currencySymbol;
                 } catch (detailErr) {
                     document.getElementById('dividendDetail').textContent = '持币即可获得 ' + currencySymbol + ' 分红';
                 }
