@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FairMint Token 管理面板</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0b1e;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #00d4aa, #00b4d8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 32px;
+            font-size: 0.95em;
+        }
+
+        /* 顶部连接栏 */
+        .top-bar {
+            display: flex;
+            gap: 16px;
+            align-items: stretch;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .top-bar .card {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .card {
+            background: #14152b;
+            border: 1px solid #2a2b45;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-title .icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .icon-wallet { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+        .icon-addr { background: rgba(0,180,216,0.15); color: #00b4d8; }
+        .icon-dash { background: rgba(0,212,170,0.15); color: #00d4aa; }
+        .icon-mint { background: rgba(255,165,0,0.15); color: #ffa500; }
+        .icon-trade { background: rgba(155,89,182,0.15); color: #9b59b6; }
+        .icon-tax { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+        .icon-wl { background: rgba(46,204,113,0.15); color: #2ecc71; }
+        .icon-rescue { background: rgba(231,76,60,0.15); color: #e74c3c; }
+        .icon-owner { background: rgba(52,152,219,0.15); color: #3498db; }
+        .icon-dividend { background: rgba(241,196,15,0.15); color: #f1c40f; }
+
+        /* 表单 */
+        label {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 6px;
+            font-weight: 500;
+            display: block;
+        }
+        input, select, textarea {
+            background: #1a1b35;
+            border: 1px solid #2a2b45;
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #e0e0e0;
+            font-size: 0.9em;
+            transition: border-color 0.2s;
+            outline: none;
+            width: 100%;
+        }
+        input:focus, select:focus, textarea:focus { border-color: #00d4aa; }
+        input::placeholder, textarea::placeholder { color: #555; }
+        textarea {
+            font-family: 'Consolas', monospace;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group.full { grid-column: 1 / -1; }
+
+        /* 按钮 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4aa, #00b4d8);
+            color: #0a0b1e;
+        }
+        .btn-wallet {
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            color: #fff;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: #fff;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: #fff;
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: #fff;
+        }
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 0.8em;
+        }
+        .btn-block { width: 100%; justify-content: center; }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        /* 钱包信息 */
+        .wallet-info {
+            background: #1a1b35;
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 0.85em;
+        }
+        .wallet-address {
+            font-family: 'Consolas', monospace;
+            color: #00d4aa;
+            word-break: break-all;
+        }
+        .wallet-balance { color: #888; margin-top: 4px; }
+        .wallet-network { color: #ffa500; margin-top: 4px; }
+
+        /* 仪表盘网格 */
+        .dash-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .dash-item {
+            background: #1a1b35;
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+        }
+        .dash-item .val {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #00d4aa;
+            word-break: break-all;
+        }
+        .dash-item .val.red { color: #ff6b6b; }
+        .dash-item .val.yellow { color: #f1c40f; }
+        .dash-item .val.green { color: #2ecc71; }
+        .dash-item .lbl {
+            font-size: 0.75em;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* 状态徽章 */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        .badge-on { background: rgba(46,204,113,0.2); color: #2ecc71; }
+        .badge-off { background: rgba(255,107,107,0.2); color: #ff6b6b; }
+        .badge-warn { background: rgba(241,196,15,0.2); color: #f1c40f; }
+
+        /* Slider */
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .slider-group input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            background: #2a2b45;
+            border-radius: 3px;
+            outline: none;
+            border: none;
+            padding: 0;
+        }
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00d4aa;
+            cursor: pointer;
+        }
+        .slider-value {
+            min-width: 44px;
+            text-align: right;
+            font-weight: 600;
+            color: #00d4aa;
+            font-size: 0.9em;
+        }
+
+        /* Toggle */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+        .toggle {
+            width: 44px;
+            height: 24px;
+            background: #2a2b45;
+            border-radius: 12px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s;
+        }
+        .toggle.active { background: #00d4aa; }
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        .toggle.active::after { transform: translateX(20px); }
+
+        /* 状态栏 */
+        .status-bar {
+            background: #1a1b35;
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 12px;
+            display: none;
+        }
+        .status-bar.show { display: block; }
+        .status-msg { font-size: 0.85em; line-height: 1.5; word-break: break-all; }
+        .status-success { color: #2ecc71; }
+        .status-error { color: #ff6b6b; }
+        .status-info { color: #00b4d8; }
+
+        /* 信息提示 */
+        .info-box {
+            background: #1a1b35;
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 12px;
+            font-size: 0.85em;
+            color: #888;
+            line-height: 1.6;
+        }
+        .info-box b { color: #e0e0e0; }
+        .info-box code {
+            background: #0d0e20;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #00d4aa;
+        }
+
+        /* 链接 */
+        a { color: #00d4aa; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* 分隔线 */
+        .divider {
+            height: 1px;
+            background: #2a2b45;
+            margin: 16px 0;
+        }
+
+        /* Tab 切换 */
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .tab-btn {
+            padding: 10px 16px;
+            background: #1a1b35;
+            border: 2px solid #2a2b45;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 500;
+            color: #888;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            border-color: #00d4aa;
+            background: rgba(0,212,170,0.1);
+            color: #00d4aa;
+        }
+        .tab-btn:hover { border-color: #00d4aa55; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .dash-grid { grid-template-columns: 1fr 1fr; }
+            .top-bar { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>FairMint Token 管理面板</h1>
+    <p class="subtitle">连接钱包，管理已部署的合约</p>
+
+    <!-- 顶部：钱包 + 合约地址 -->
+    <div class="top-bar">
+        <div class="card">
+            <div class="card-title">
+                <div class="icon icon-wallet">&#x1F517;</div>
+                钱包连接
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn btn-wallet" id="connectMetaMaskBtn" onclick="connectWallet('metamask')">
+                    🦊 MetaMask
+                </button>
+                <button class="btn btn-wallet" id="connectTrustBtn" onclick="connectWallet('trustwallet')" style="background:linear-gradient(135deg,#3375BB,#1A6DFF);">
+                    🛡️ Trust Wallet
+                </button>
+            </div>
+            <div id="walletDetectInfo" style="margin-top:10px; font-size:0.8em; color:#888;"></div>
+            <div class="wallet-info" id="walletInfo" style="display:none;">
+                <div class="wallet-address" id="walletAddress"></div>
+                <div class="wallet-balance" id="walletBalance"></div>
+                <div class="wallet-network" id="walletNetwork"></div>
+                <button class="btn btn-sm btn-primary" style="margin-top:8px;" onclick="updateWalletInfo()">刷新余额</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">
+                <div class="icon icon-addr">&#x1F4CD;</div>
+                合约地址
+            </div>
+            <input type="text" id="contractAddress" placeholder="输入已部署的主合约地址 0x...">
+            <div style="margin-top:8px;">
+                <select id="network" onchange="switchNetwork()" style="width:auto; display:inline-block; padding:8px 12px;">
+                    <option value="56">BSC 主网</option>
+                    <option value="97">BSC 测试网</option>
+                </select>
+            </div>
+            <button class="btn btn-primary btn-block" style="margin-top:10px;" onclick="loadContract()">
+                加载合约
+            </button>
+        </div>
+    </div>
+
+    <!-- 仪表盘 -->
+    <div class="card" id="dashboardCard" style="display:none;">
+        <div class="card-title">
+            <div class="icon icon-dash">&#x1F4CA;</div>
+            合约仪表盘
+            <button class="btn btn-sm btn-primary" style="margin-left:auto;" onclick="refreshDashboard()">刷新</button>
+        </div>
+        <div class="dash-grid" id="dashGrid"></div>
+        <button class="btn btn-block" style="margin-top:12px; background:linear-gradient(135deg,#4facfe,#00f2fe); color:#fff; font-weight:600;" onclick="openMintPage()">
+            💎 打开 Mint 页面
+        </button>
+        <button class="btn btn-block" style="margin-top:6px; background:linear-gradient(135deg,#43e97b,#38f9d7); color:#fff; font-weight:600;" onclick="copyMintLink()">
+            📋 复制 Mint 链接
+        </button>
+    </div>
+
+    <!-- 功能面板 -->
+    <div id="adminPanels" style="display:none;">
+
+        <div class="tab-nav">
+            <div class="tab-btn active" onclick="switchTab('mint', this)">Mint 管理</div>
+            <div class="tab-btn" onclick="switchTab('trading', this)">交易管理</div>
+            <div class="tab-btn" onclick="switchTab('tax', this)">税收管理</div>
+            <div class="tab-btn" onclick="switchTab('whitelist', this)">白名单</div>
+            <div class="tab-btn" onclick="switchTab('rescue', this)">紧急提取</div>
+            <div class="tab-btn" onclick="switchTab('dividend', this)">分红合约</div>
+            <div class="tab-btn" onclick="switchTab('owner', this)">权限管理</div>
+        </div>
+
+        <!-- Mint 管理 -->
+        <div class="tab-panel active" id="tab-mint">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon icon-mint">&#x1F4B0;</div>
+                    Mint 管理
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Mint 状态</label>
+                        <div id="mintStatusDisplay" style="padding:10px 0;">--</div>
+                    </div>
+                    <div class="form-group">
+                        <label>已 Mint / 总份数</label>
+                        <div id="mintProgressDisplay" style="padding:10px 0;">--</div>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-success" onclick="adminCall('setMintActive', [true])">开启 Mint</button>
+                    <button class="btn btn-danger" onclick="adminCall('setMintActive', [false])">关闭 Mint</button>
+                </div>
+                <div class="divider"></div>
+                <div class="form-grid">
+                    <div class="form-group" id="mintPriceViewGroup">
+                        <label id="mintPriceViewLabel">Mint 价格</label>
+                        <div id="mintPriceViewDisplay" style="padding:10px 0; color:#00d4aa; font-weight:600;">--</div>
+                    </div>
+                    <div class="form-group">
+                        <label>每份代币数量</label>
+                        <div id="perSlotDisplay" style="padding:10px 0; color:#00d4aa; font-weight:600;">--</div>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <!-- BNB 模式：设置 BNB Mint 价格 -->
+                <div id="mintBnbSection" style="display:none;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>新 BNB Mint 价格 (BNB)</label>
+                            <input type="number" id="newMintPrice" placeholder="0.01" step="0.0001">
+                        </div>
+                        <div class="form-group" style="display:flex; align-items:flex-end;">
+                            <button class="btn btn-primary btn-sm" onclick="setMintPrice()">设置 BNB Mint 价格</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- USDT 模式：设置 USDT Mint 价格 -->
+                <div id="mintUsdtSection" style="display:none;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>新 USDT Mint 价格 (USDT)</label>
+                            <input type="number" id="newMintPriceUSDT" placeholder="0.5" step="0.0001">
+                        </div>
+                        <div class="form-group" style="display:flex; align-items:flex-end;">
+                            <button class="btn btn-primary btn-sm" onclick="setMintPriceUSDT()">设置 USDT Mint 价格</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-box" id="mintRuleInfo">
+                    <b>Mint 规则</b><br>
+                    支持 BNB 和 USDT 两种方式 Mint；单钱包限购一份；Mint 满后合约停止接收；50% 资金自动添加 token/USDT 流动性
+                </div>
+            </div>
+        </div>
+
+        <!-- 交易管理 -->
+        <div class="tab-panel" id="tab-trading">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon icon-trade">&#x1F4C8;</div>
+                    交易管理
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>交易状态</label>
+                        <div id="tradingStatusDisplay" style="padding:10px 0;">--</div>
+                    </div>
+                    <div class="form-group">
+                        <label>开盘模式</label>
+                        <div id="openModeDisplay" style="padding:10px 0;">--</div>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-success" onclick="adminCall('enableTrading', [])">手动开盘</button>
+                    <button class="btn btn-warning" onclick="adminCall('checkAndEnableTimedTrading', [])">检查定时开盘</button>
+                </div>
+                <div class="divider"></div>
+                <label>修改开盘模式</label>
+                <div class="form-grid" style="margin-top:8px;">
+                    <div class="form-group">
+                        <label>开盘模式</label>
+                        <select id="setOpenModeSelect">
+                            <option value="0">自动开盘</option>
+                            <option value="1">手动开盘</option>
+                            <option value="2">定时开盘</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>定时开盘时间 (Unix时间戳，0=不限)</label>
+                        <input type="number" id="setOpenModeTimestamp" value="0" placeholder="0">
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="setOpenMode()">设置开盘模式</button>
+            </div>
+        </div>
+
+        <!-- 税收管理 -->
+        <div class="tab-panel" id="tab-tax">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon icon-tax">&#x1F525;</div>
+                    税收管理
+                </div>
+
+                <label>修改买卖税率</label>
+                <div class="form-grid" style="margin-top:8px;">
+                    <div class="form-group">
+                        <label>买入税</label>
+                        <div class="slider-group">
+                            <input type="range" id="newBuyTax" min="0" max="10" step="0.5" value="5" oninput="document.getElementById('newBuyTaxVal').textContent=this.value+'%'">
+                            <span class="slider-value" id="newBuyTaxVal">5%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>卖出税</label>
+                        <div class="slider-group">
+                            <input type="range" id="newSellTax" min="0" max="10" step="0.5" value="5" oninput="document.getElementById('newSellTaxVal').textContent=this.value+'%'">
+                            <span class="slider-value" id="newSellTaxVal">5%</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="setTaxRates()">修改税率</button>
+
+                <div class="divider"></div>
+
+                <label>修改税收分配 (合计 100%)</label>
+                <div class="form-grid" style="margin-top:8px;">
+                    <div class="form-group">
+                        <label>营销</label>
+                        <div class="slider-group">
+                        <input type="range" id="newMarketingShare" min="0" max="100" value="40" oninput="updateNewTaxDist('newMarketingShare')">
+                        <span class="slider-value" id="newMarketingVal">40%</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>销毁</label>
+                    <div class="slider-group">
+                        <input type="range" id="newBurnShare" min="0" max="100" value="10" oninput="updateNewTaxDist('newBurnShare')">
+                        <span class="slider-value" id="newBurnVal">10%</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>持币分红</label>
+                    <div class="slider-group">
+                        <input type="range" id="newDividendShare" min="0" max="100" value="30" oninput="updateNewTaxDist('newDividendShare')">
+                        <span class="slider-value" id="newDividendVal">30%</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>回流 LP</label>
+                    <div class="slider-group">
+                        <input type="range" id="newLpShare" min="0" max="100" value="20" oninput="updateNewTaxDist('newLpShare')">
+                        <span class="slider-value" id="newLpVal">20%</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="color:#ff6b6b; font-size:0.85em; display:none;" id="newTaxDistError">
+                    税收分配比例合计必须为 100%
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="setTaxDistribution()">修改税收分配</button>
+
+                <div class="divider"></div>
+
+                <label>修改营销钱包</label>
+                <div class="form-grid" style="margin-top:8px;">
+                    <div class="form-group">
+                        <label>当前营销钱包</label>
+                        <div id="currentMarketingWallet" style="padding:8px 0; font-family:Consolas,monospace; font-size:0.85em; color:#00d4aa; word-break:break-all;">--</div>
+                    </div>
+                    <div class="form-group">
+                        <label>新营销钱包地址</label>
+                        <input type="text" id="newMarketingWallet" placeholder="0x...">
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="setMarketingWallet()">修改营销钱包</button>
+
+                <div class="divider"></div>
+
+                <label>Swap 阈值</label>
+                <div class="form-grid" style="margin-top:8px;">
+                    <div class="form-group">
+                        <label>当前阈值</label>
+                        <div id="currentSwapThreshold" style="padding:8px 0; color:#00d4aa;">--</div>
+                    </div>
+                    <div class="form-group">
+                        <label>新阈值 (代币数量)</label>
+                        <input type="number" id="newSwapThreshold" placeholder="例如 1000">
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="setSwapThreshold()">修改 Swap 阈值</button>
+            </div>
+        </div>
+
+        <!-- 白名单 -->
+        <div class="tab-panel" id="tab-whitelist">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon icon-wl">&#x2705;</div>
+                    白名单管理
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>白名单状态</label>
+                        <div id="whitelistStatusDisplay" style="padding:10px 0;">--</div>
+                    </div>
+                    <div class="form-group">
+                        <label>查询地址白名单</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="checkWlAddr" placeholder="0x...">
+                            <button class="btn btn-sm btn-primary" onclick="checkWhitelist()">查询</button>
+                        </div>
+                        <div id="wlCheckResult" style="padding:6px 0; font-size:0.85em;"></div>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-success" onclick="adminCall('setWhitelistEnabled', [true])">启用白名单</button>
+                    <button class="btn btn-danger" onclick="adminCall('setWhitelistEnabled', [false])">关闭白名单</button>
+                </div>
+                <div class="divider"></div>
+                <div class="form-group">
+                    <label>添加白名单地址 (每行一个)</label>
+                    <textarea id="wlAddAddresses" placeholder="0x1234...&#10;0x5678...&#10;0x9abc..."></textarea>
+                    <button class="btn btn-success btn-sm" style="margin-top:8px;" onclick="addWhitelist()">添加到白名单</button>
+                </div>
+                <div class="divider"></div>
+                <div class="form-group">
+                    <label>移除白名单地址 (每行一个)</label>
+                    <textarea id="wlRemoveAddresses" placeholder="0x1234...&#10;0x5678..."></textarea>
+                    <button class="btn btn-danger btn-sm" style="margin-top:8px;" onclick="removeWhitelist()">从白名单移除</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 紧急提取 -->
+        <div class="tab-panel" id="tab-rescue">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon icon-rescue">&#x26A0;</div>
+                    紧急提取（主合约）
+                </div>
+                <div class="info-box" style="background:rgba(231,76,60,0.1); border:1px solid rgba(231,76,60,0.3);">
+                    <b style="color:#e74c3c;">&#x26A0; 危险操作</b><br>
+                    提取合约中的 BNB 或任意 ERC20 代币，仅在紧急情况下使用！
+                </div>
+                <div class="divider"></div>
+                <label>提取 BNB</label>
+                <div class="form-grid" style="margin-top:8px;">
+                    <div class="form-group">
+                        <label>接收地址</label>
+                        <input type="text" id="rescueBnbTo" placeholder="0x... 留空=部署者钱包">
+                    </div>
+                    <div class="form-group">
+                        <label>金额 (BNB)</label>
+                        <input type="number" id="rescueBnbAmount" placeholder="0.1" step="0.001">
+                    </div>
+                </div>
+                <button class="btn btn-danger btn-sm" onclick="rescueBNB()">提取 BNB</button>
+
+                <div class="divider"></div>
+
+                <label>提取 ERC20 代币</label>
+                <div class="form-grid" style="margin-top:8px;">
+                    <div class="form-group">
+                        <label>代币合约地址</label>
+                        <input type="text" id="rescueTokenAddr" placeholder="0x...">
+                    </div>
+                    <div class="form-group">
+                        <label>接收地址</label>
+                        <input type="text" id="rescueTokenTo" placeholder="0x... 留空=部署者钱包">
+                    </div>
+                    <div class="form-group">
+                        <label>代币数量 (原始单位)</label>
+                        <input type="number" id="rescueTokenAmount" placeholder="1000000000000000000">
+                    </div>
+                </div>
+                <button class="btn btn-danger btn-sm" onclick="rescueToken()">提取代币</button>
+
+                <div class="divider"></div>
+
+                <label>快捷操作</label>
+                <div class="btn-row">
+                    <button class="btn btn-warning btn-sm" onclick="adminCall('withdrawBNB', [])">withdrawBNB()</button>
+                    <button class="btn btn-warning btn-sm" onclick="adminCall('withdrawTokens', [])">withdrawTokens()</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分红合约管理 -->
+        <div class="tab-panel" id="tab-dividend">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon icon-dividend">&#x1F4B3;</div>
+                    分红合约管理
+                    <span id="divModeBadge" style="margin-left:8px;"></span>
+                </div>
+                <div class="dash-grid" id="dividendDash"></div>
+                <div class="divider"></div>
+
+                <label>查询持币人分红</label>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <input type="text" id="divCheckAddr" placeholder="持币人地址 0x...">
+                    <button class="btn btn-sm btn-primary" onclick="checkDividend()">查询</button>
+                </div>
+                <div id="divCheckResult" style="padding:8px 0; font-size:0.85em;"></div>
+
+                <div class="divider"></div>
+
+                <!-- BNB 分红模式 -->
+                <div id="divBnbSection" style="display:none;">
+                    <label>手动存入 BNB 到分红池</label>
+                    <div class="form-grid" style="margin-top:8px;">
+                        <div class="form-group">
+                            <label>存入金额 (BNB)</label>
+                            <input type="number" id="divDepositBnbAmount" placeholder="0.01" step="0.001">
+                        </div>
+                        <div class="form-group" style="display:flex; align-items:flex-end;">
+                            <button class="btn btn-success btn-sm" onclick="depositBNBToDividend()">存入 BNB</button>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <label>提取分红池 BNB</label>
+                    <div class="form-grid" style="margin-top:8px;">
+                        <div class="form-group">
+                            <label>接收地址</label>
+                            <input type="text" id="divWithdrawBnbTo" placeholder="0x... 留空=Admin钱包">
+                        </div>
+                        <div class="form-group">
+                            <label>金额 (BNB)</label>
+                            <input type="number" id="divWithdrawBnbAmount" placeholder="0.1" step="0.001">
+                        </div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="withdrawDividendBNB()">提取 BNB</button>
+                    <div class="divider"></div>
+                </div>
+
+                <!-- USDT 分红模式 -->
+                <div id="divUsdtSection" style="display:none;">
+                    <label>手动存入 USDT 到分红池</label>
+                    <div class="form-grid" style="margin-top:8px;">
+                        <div class="form-group">
+                            <label>存入金额 (USDT)</label>
+                            <input type="number" id="divDepositUsdtAmount" placeholder="0.1" step="0.001">
+                        </div>
+                        <div class="form-group" style="display:flex; align-items:flex-end;">
+                            <button class="btn btn-success btn-sm" onclick="depositUSDTToDividend()">存入 USDT</button>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <label>分红合约紧急提取 USDT</label>
+                    <div class="form-grid" style="margin-top:8px;">
+                        <div class="form-group">
+                            <label>接收地址</label>
+                            <input type="text" id="divWithdrawUSDTTo" placeholder="0x... 留空=Admin钱包">
+                        </div>
+                        <div class="form-group">
+                            <label>金额 (USDT)</label>
+                            <input type="number" id="divWithdrawUSDTAmount" placeholder="0.1" step="0.001">
+                        </div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="dividendWithdrawStuckUSDT()">提取 USDT</button>
+                    <div class="divider"></div>
+                </div>
+
+                <label>修改分红合约 Admin</label>
+                <div class="form-grid" style="margin-top:8px;">
+                    <div class="form-group">
+                        <label>当前 Admin</label>
+                        <div id="currentDivAdmin" style="padding:8px 0; font-family:Consolas,monospace; font-size:0.85em; color:#f1c40f; word-break:break-all;">--</div>
+                    </div>
+                    <div class="form-group">
+                        <label>新 Admin 地址</label>
+                        <input type="text" id="newDivAdmin" placeholder="0x...">
+                    </div>
+                </div>
+                <button class="btn btn-warning btn-sm" onclick="setDividendAdmin()">修改 Admin</button>
+
+                <div class="divider"></div>
+
+                <label>分红合约紧急提取 ERC20 代币</label>
+                <div class="form-grid" style="margin-top:8px;">
+                    <div class="form-group">
+                        <label>代币合约地址</label>
+                        <input type="text" id="divRescueTokenAddr" placeholder="0x...">
+                    </div>
+                    <div class="form-group">
+                        <label>接收地址</label>
+                        <input type="text" id="divRescueTokenTo" placeholder="0x...">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:8px;">
+                    <label>代币数量 (原始单位)</label>
+                    <input type="number" id="divRescueTokenAmount" placeholder="1000000000000000000">
+                </div>
+                <button class="btn btn-danger btn-sm" onclick="dividendRescueToken()">提取代币</button>
+
+                <div class="divider"></div>
+
+                <label>紧急操作</label>
+                <div class="btn-row">
+                    <button class="btn btn-danger btn-sm" onclick="dividendEmergencyWithdraw()">emergencyWithdraw() 提取全部资金</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 权限管理 -->
+        <div class="tab-panel" id="tab-owner">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon icon-owner">&#x1F511;</div>
+                    权限管理
+                </div>
+                <div class="info-box" style="background:rgba(231,76,60,0.1); border:1px solid rgba(231,76,60,0.3);">
+                    <b style="color:#e74c3c;">&#x26A0; 不可逆操作！</b><br>
+                    <code>renounceOwnership()</code> 放弃所有权后无法恢复！<br>
+                    <code>transferOwnership()</code> 转移后原地址失去管理权限！
+                </div>
+                <div class="divider"></div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>主合约 Owner</label>
+                        <div id="currentOwner" style="padding:8px 0; font-family:Consolas,monospace; font-size:0.85em; color:#00d4aa; word-break:break-all;">--</div>
+                    </div>
+                    <div class="form-group">
+                        <label>分红合约 Admin</label>
+                        <div id="currentDivAdmin2" style="padding:8px 0; font-family:Consolas,monospace; font-size:0.85em; color:#f1c40f; word-break:break-all;">--</div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <label>转移主合约所有权</label>
+                <div class="form-grid" style="margin-top:8px;">
+                    <div class="form-group">
+                        <input type="text" id="newOwnerAddr" placeholder="新 Owner 地址 0x...">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-warning" onclick="transferOwnership()">转移所有权</button>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <label>放弃主合约所有权</label>
+                <div style="margin-top:8px;">
+                    <button class="btn btn-danger" onclick="renounceOwnership()">放弃所有权 (不可逆)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 状态栏 -->
+    <div class="status-bar" id="statusBar">
+        <div class="status-msg" id="statusMsg"></div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<script>
+    let provider, signer, connectedAddress;
+    let tokenContract, dividendContract;
+    let tokenAddr, dividendAddr;
+    let baseCurrencyMode = 0; // 0=BNB, 1=USDT
+    let dividendIsBNB = true; // true=BNB分红, false=USDT分红
+    let dividendRewardTokenAddr = '0x0000000000000000000000000000000000000000';
+
+    // 地址校验工具：规范化 checksum， reject 非法地址
+    function safeAddr(input, fieldName) {
+        const val = (input || '').trim();
+        if (!val) throw new Error(fieldName + '：地址不能为空');
+        if (val.length !== 42 || !val.startsWith('0x')) throw new Error(fieldName + '：地址格式不正确');
+        return ethers.utils.getAddress(val);
+    }
+
+    // ============ ABI ============
+
+    const TOKEN_ABI = [
+        "function owner() view returns (address)",
+        "function mintActive() view returns (bool)",
+        "function mintCount() view returns (uint256)",
+        "function mintedSlots() view returns (uint256)",
+        "function mintPrice() view returns (uint256)",
+        "function mintPriceUSDT() view returns (uint256)",
+        "function usdtToken() view returns (address)",
+        "function baseCurrency() view returns (uint256)",
+        "function totalMintSlots() view returns (uint256)",
+        "function totalSupply_() view returns (uint256)",
+        "function totalSupply() view returns (uint256)",
+        "function tradingEnabled() view returns (bool)",
+        "function openMode() view returns (uint8)",
+        "function timedOpenTimestamp() view returns (uint256)",
+        "function buyTax() view returns (uint256)",
+        "function sellTax() view returns (uint256)",
+        "function marketingShare() view returns (uint256)",
+        "function burnShare() view returns (uint256)",
+        "function dividendShare() view returns (uint256)",
+        "function lpShare() view returns (uint256)",
+        "function marketingWallet() view returns (address)",
+        "function swapThreshold() view returns (uint256)",
+        "function whitelistEnabled() view returns (bool)",
+        "function whitelist(address) view returns (bool)",
+        "function hasMinted(address) view returns (bool)",
+        "function dividendDistributor() view returns (address)",
+        "function uniswapV2Pair() view returns (address)",
+        "function uniswapV2Router() view returns (address)",
+        "function inSwapAndLiquify() view returns (bool)",
+        "function initialized() view returns (bool)",
+        "function dividendOf(address) view returns (uint256)",
+        "function name() view returns (string)",
+        "function symbol() view returns (string)",
+        "function decimals() view returns (uint8)",
+        "function balanceOf(address) view returns (uint256)",
+        // Write functions
+        "function mintWithUSDT()",
+        "function setMintPrice(uint256 _price)",
+        "function setMintPriceUSDT(uint256 _price)",
+        "function setMintActive(bool active)",
+        "function enableTrading()",
+        "function checkAndEnableTimedTrading()",
+        "function setOpenMode(uint8 mode, uint256 timestamp)",
+        "function setTaxRates(uint256 buyTax, uint256 sellTax)",
+        "function setTaxDistribution(uint256 marketingShare, uint256 burnShare, uint256 dividendShare, uint256 lpShare)",
+        "function setMarketingWallet(address wallet)",
+        "function setSwapThreshold(uint256 threshold)",
+        "function setWhitelist(address[] accounts, bool status)",
+        "function setWhitelistEnabled(bool enabled)",
+        "function rescueBNB(address to, uint256 amount)",
+        "function rescueToken(address token_, address to, uint256 amount)",
+        "function withdrawBNB()",
+        "function withdrawTokens()",
+        "function transferOwnership(address newOwner)",
+        "function renounceOwnership()",
+        "function claimDividend()"
+    ];
+
+    const DIVIDEND_ABI = [
+        "function admin() view returns (address)",
+        "function token() view returns (address)",
+        "function totalShares() view returns (uint256)",
+        "function totalDividends() view returns (uint256)",
+        "function dividendsPerShare() view returns (uint256)",
+        "function dividendsPerShareAccuracyFactor() view returns (uint256)",
+        "function getClaimableDividend(address shareholder) view returns (uint256)",
+        "function getShareholderInfo(address shareholder) view returns (uint256 shares, uint256 unpaid, uint256 lastDps)",
+        "function getUnpaidDividends() view returns (uint256)",
+        "function unpaidDividends(address) view returns (uint256)",
+        "function shares(address) view returns (uint256)",
+        "function usdtToken() view returns (address)",
+        "function rewardToken() view returns (address)",
+        // Write
+        "function setAdmin(address _admin)",
+        "function deposit() payable",
+        "function depositUSDT(uint256 amount)",
+        "function withdrawStuckUSDT(address to, uint256 amount)",
+        "function withdrawStuckRewards(address to, uint256 amount)",
+        "function rescueToken(address token_, address to, uint256 amount)",
+        "function emergencyWithdraw()",
+        "function claim()",
+        "function claimFor(address[] shareholders)"
+    ];
+
+    // ============ 钱包 ============
+
+    // 检测可用钱包
+    function detectWallets() {
+        const info = document.getElementById('walletDetectInfo');
+        if (typeof window.ethereum === 'undefined') {
+            info.innerHTML = '⚠️ 未检测到任何钱包扩展，请安装 MetaMask 或 Trust Wallet';
+            return;
+        }
+        const detected = [];
+        if (window.ethereum.isMetaMask) detected.push('🦊 MetaMask');
+        if (window.ethereum.isTrust || window.ethereum.isTrustWallet) detected.push('🛡️ Trust Wallet');
+        if (detected.length === 0) detected.push('🔗 未知钱包');
+        info.innerHTML = '检测到钱包：' + detected.join('、');
+    }
+    detectWallets();
+
+    async function connectWallet(walletType) {
+        if (typeof window.ethereum === 'undefined') {
+            alert('请先安装 MetaMask 或 Trust Wallet！');
+            return;
+        }
+        try {
+            let ethereumProvider = window.ethereum;
+
+            // 如果同时安装了多个钱包，优先使用指定的钱包
+            if (walletType === 'metamask' && window.ethereum.providers) {
+                const mm = window.ethereum.providers.find(p => p.isMetaMask);
+                if (mm) ethereumProvider = mm;
+            } else if (walletType === 'trustwallet' && window.ethereum.providers) {
+                const tw = window.ethereum.providers.find(p => p.isTrust || p.isTrustWallet);
+                if (tw) ethereumProvider = tw;
+            }
+
+            provider = new ethers.providers.Web3Provider(ethereumProvider);
+            await provider.send("eth_requestAccounts", []);
+            signer = provider.getSigner();
+            connectedAddress = await signer.getAddress();
+
+            // 检测实际连接的是哪个钱包
+            const isMM = ethereumProvider.isMetaMask;
+            const isTW = ethereumProvider.isTrust || ethereumProvider.isTrustWallet;
+            const walletLabel = isTW ? 'Trust Wallet' : isMM ? 'MetaMask' : '未知钱包';
+
+            // 自动同步网络下拉框
+            const network = await provider.getNetwork();
+            const walletChainId = Number(network.chainId);
+            const names = { 56: 'BSC 主网', 97: 'BSC 测试网' };
+            if (names[walletChainId]) {
+                document.getElementById('network').value = String(walletChainId);
+            }
+
+            document.getElementById('connectMetaMaskBtn').style.display = 'none';
+            document.getElementById('connectTrustBtn').style.display = 'none';
+            document.getElementById('walletDetectInfo').innerHTML =
+                '✅ 已连接 <b>' + walletLabel + '</b>' +
+                (window.ethereum.providers ? ' (如需切换钱包，请刷新页面重选)' : '');
+            document.getElementById('walletInfo').style.display = 'block';
+            document.getElementById('walletAddress').textContent = connectedAddress;
+
+            await updateWalletInfo();
+            ethereumProvider.on('accountsChanged', () => window.location.reload());
+            ethereumProvider.on('chainChanged', () => window.location.reload());
+        } catch (err) {
+            console.error('连接失败:', err);
+            alert('连接失败: ' + err.message);
+        }
+    }
+
+    async function updateWalletInfo() {
+        if (!provider || !connectedAddress) return;
+        try {
+            const balance = await provider.getBalance(connectedAddress);
+            const network = await provider.getNetwork();
+            const bnbStr = ethers.utils.formatEther(balance);
+            const displayBalance = parseFloat(bnbStr) < 0.000001 && balance.gt(0)
+                ? bnbStr + ' (极小)'
+                : parseFloat(bnbStr).toFixed(6).replace(/\.?0+$/, '') || '0';
+            document.getElementById('walletBalance').textContent = '余额: ' + displayBalance + ' BNB';
+            const chainId = Number(network.chainId);
+            const names = { 56: 'BSC 主网', 97: 'BSC 测试网' };
+            document.getElementById('walletNetwork').textContent = '网络: ' + (names[chainId] || 'Chain ' + chainId) + ' (ID: ' + chainId + ')';
+        } catch (err) {
+            document.getElementById('walletBalance').textContent = '余额查询失败: ' + err.message;
+        }
+    }
+
+    async function switchNetwork() {
+        const chainId = parseInt(document.getElementById('network').value);
+        if (!window.ethereum) return;
+        const chainHex = '0x' + chainId.toString(16);
+        try {
+            await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainHex }] });
+        } catch (err) {
+            if (err.code === 4902) {
+                const params = chainId === 56 ? [{
+                    chainId: chainHex, chainName: 'BNB Smart Chain Mainnet',
+                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                    rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                    blockExplorerUrls: ['https://bscscan.com/']
+                }] : [{
+                    chainId: chainHex, chainName: 'BNB Smart Chain Testnet',
+                    nativeCurrency: { name: 'tBNB', symbol: 'tBNB', decimals: 18 },
+                    rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/'],
+                    blockExplorerUrls: ['https://testnet.bscscan.com/']
+                }];
+                await window.ethereum.request({ method: 'wallet_addEthereumChain', params });
+            }
+        }
+        await updateWalletInfo();
+    }
+
+    // ============ 加载合约 ============
+
+    async function loadContract() {
+        if (!signer) { alert('请先连接钱包！'); return; }
+
+        const rawAddr = document.getElementById('contractAddress').value.trim();
+        if (!rawAddr || !rawAddr.startsWith('0x')) {
+            alert('请输入有效的合约地址！');
+            return;
+        }
+        tokenAddr = safeAddr(rawAddr, '合约地址');
+
+        try {
+            tokenContract = new ethers.Contract(tokenAddr, TOKEN_ABI, signer);
+            // 验证合约是否存在
+            const owner = await tokenContract.owner();
+            dividendAddr = safeAddr(await tokenContract.dividendDistributor(), '分红合约地址');
+            dividendContract = new ethers.Contract(dividendAddr, DIVIDEND_ABI, signer);
+
+            document.getElementById('dashboardCard').style.display = 'block';
+            document.getElementById('adminPanels').style.display = 'block';
+
+            // 检测 baseCurrency 模式
+            try {
+                const bc = await tokenContract.baseCurrency();
+                baseCurrencyMode = bc.toNumber();
+            } catch(e) {
+                baseCurrencyMode = 0; // 默认 BNB
+            }
+
+            // 检测分红合约 rewardToken
+            try {
+                dividendRewardTokenAddr = await dividendContract.rewardToken();
+                dividendIsBNB = (dividendRewardTokenAddr === ethers.constants.AddressZero);
+            } catch(e) {
+                dividendIsBNB = false; // 默认 USDT（旧版合约兼容）
+            }
+
+            // 根据模式显示/隐藏相关控件
+            updateModeUI();
+
+            setStatus('合约加载成功！Owner: ' + owner + (baseCurrencyMode === 0 ? ' [BNB模式]' : ' [USDT模式]'), 'success');
+            await refreshDashboard();
+        } catch (err) {
+            console.error('加载合约失败:', err);
+            setStatus('加载合约失败: ' + (err.reason || err.message), 'error');
+        }
+    }
+
+    // ============ 仪表盘 ============
+
+    async function refreshDashboard() {
+        if (!tokenContract) return;
+        try {
+            const [
+                owner, mintActive, mintedSlots, totalMintSlots, mintPrice, mintPriceUSDT,
+                totalSupply, tradingEnabled, openMode, timedOpenTimestamp,
+                buyTax, sellTax, marketingShare, burnShare, dividendShare, lpShare,
+                marketingWallet, whitelistEnabled, pairAddr, symbol, name, usdtTokenAddr, baseCurrency
+            ] = await Promise.all([
+                tokenContract.owner(),
+                tokenContract.mintActive(),
+                tokenContract.mintedSlots(),
+                tokenContract.totalMintSlots(),
+                tokenContract.mintPrice(),
+                tokenContract.mintPriceUSDT(),
+                tokenContract.totalSupply_(),
+                tokenContract.tradingEnabled(),
+                tokenContract.openMode(),
+                tokenContract.timedOpenTimestamp(),
+                tokenContract.buyTax(),
+                tokenContract.sellTax(),
+                tokenContract.marketingShare(),
+                tokenContract.burnShare(),
+                tokenContract.dividendShare(),
+                tokenContract.lpShare(),
+                tokenContract.marketingWallet(),
+                tokenContract.whitelistEnabled(),
+                tokenContract.uniswapV2Pair(),
+                tokenContract.symbol(),
+                tokenContract.name(),
+                tokenContract.usdtToken(),
+                tokenContract.baseCurrency()
+            ]);
+
+            const mintPercent = totalMintSlots > 0 ? (mintedSlots * 100 / totalMintSlots).toFixed(1) : 0;
+            const modeLabels = ['自动', '手动', '定时'];
+            const isBNBMode = baseCurrency.toNumber() === 0;
+            baseCurrencyMode = baseCurrency.toNumber();
+
+            const poolLabel = isBNBMode ? '底池: Token/BNB 🔥' : '底池: Token/USDT 💵';
+            const mintPriceLabel = isBNBMode
+                ? ethers.utils.formatEther(mintPrice) + ' BNB'
+                : ethers.utils.formatUnits(mintPriceUSDT, 6) + ' USDT';
+            const mintPriceLblTag = isBNBMode ? 'Mint 价格 (BNB)' : 'Mint 价格 (USDT)';
+
+            document.getElementById('dashGrid').innerHTML = `
+                <div class="dash-item"><div class="val">${name}</div><div class="lbl">代币名称</div></div>
+                <div class="dash-item"><div class="val">${symbol}</div><div class="lbl">代币符号</div></div>
+                <div class="dash-item"><div class="val">${poolLabel}</div><div class="lbl">底池模式</div></div>
+                <div class="dash-item"><div class="val ${mintActive ? 'green' : 'red'}">${mintActive ? '开启' : '关闭'}</div><div class="lbl">Mint 状态</div></div>
+                <div class="dash-item"><div class="val">${mintedSlots}/${totalMintSlots}</div><div class="lbl">Mint 进度 (${mintPercent}%)</div></div>
+                <div class="dash-item"><div class="val">${mintPriceLabel}</div><div class="lbl">${mintPriceLblTag}</div></div>
+                <div class="dash-item"><div class="val ${tradingEnabled ? 'green' : 'red'}">${tradingEnabled ? '已开盘' : '未开盘'}</div><div class="lbl">交易状态</div></div>
+                <div class="dash-item"><div class="val yellow">${modeLabels[openMode] || openMode}</div><div class="lbl">开盘模式</div></div>
+                <div class="dash-item"><div class="val">${(buyTax / 100).toFixed(1)}%/${(sellTax / 100).toFixed(1)}%</div><div class="lbl">买/卖税</div></div>
+                <div class="dash-item"><div class="val">${marketingShare/100}/${burnShare/100}/${dividendShare/100}/${lpShare/100}</div><div class="lbl">营销/销毁/分红/LP</div></div>
+                <div class="dash-item"><div class="val ${whitelistEnabled ? 'green' : 'red'}">${whitelistEnabled ? '启用' : '关闭'}</div><div class="lbl">白名单</div></div>
+            `;
+
+            // 更新模式相关 UI
+            updateModeUI();
+
+            // 更新子面板显示
+            document.getElementById('mintStatusDisplay').innerHTML =
+                mintActive ? '<span class="badge badge-on">Mint 开启中</span>' : '<span class="badge badge-off">Mint 已关闭</span>';
+            document.getElementById('mintProgressDisplay').innerHTML =
+                `${mintedSlots} / ${totalMintSlots} <span style="color:#888;">(${mintPercent}%)</span>`;
+            // 更新 Mint 价格显示（根据模式）
+            const priceViewLabel = document.getElementById('mintPriceViewLabel');
+            const priceViewDisplay = document.getElementById('mintPriceViewDisplay');
+            if (isBNBMode) {
+                priceViewLabel.textContent = 'Mint 价格 (BNB)';
+                priceViewDisplay.textContent = ethers.utils.formatEther(mintPrice) + ' BNB';
+            } else {
+                priceViewLabel.textContent = 'Mint 价格 (USDT)';
+                priceViewDisplay.textContent = ethers.utils.formatUnits(mintPriceUSDT, 6) + ' USDT';
+            }
+            const perSlot = totalMintSlots > 0 ? totalSupply.mul(50).div(100).div(totalMintSlots) : ethers.BigNumber.from(0);
+            document.getElementById('perSlotDisplay').textContent = ethers.utils.formatEther(perSlot) + ' ' + symbol;
+
+            // 更新 Mint 规则说明
+            const mintRuleInfo = document.getElementById('mintRuleInfo');
+            if (isBNBMode) {
+                mintRuleInfo.innerHTML = '<b>Mint 规则</b><br>BNB 模式：使用 BNB Mint；单钱包限购一份；Mint 满后合约停止接收；50% BNB 自动添加 Token/BNB 流动性';
+            } else {
+                mintRuleInfo.innerHTML = '<b>Mint 规则</b><br>USDT 模式：使用 USDT Mint；单钱包限购一份；Mint 满后合约停止接收；50% USDT 自动添加 Token/USDT 流动性';
+            }
+
+            document.getElementById('tradingStatusDisplay').innerHTML =
+                tradingEnabled ? '<span class="badge badge-on">已开盘</span>' : '<span class="badge badge-off">未开盘</span>';
+            document.getElementById('openModeDisplay').innerHTML =
+                `<span class="badge badge-warn">${modeLabels[openMode]}</span>` +
+                (openMode === 2 && timedOpenTimestamp > 0 ? ' ' + new Date(timedOpenTimestamp * 1000).toLocaleString() : '');
+
+            document.getElementById('currentMarketingWallet').textContent = marketingWallet;
+            document.getElementById('currentSwapThreshold').textContent = ethers.utils.formatEther(await tokenContract.swapThreshold());
+
+            document.getElementById('whitelistStatusDisplay').innerHTML =
+                whitelistEnabled ? '<span class="badge badge-on">白名单已启用</span>' : '<span class="badge badge-off">白名单已关闭</span>';
+
+            document.getElementById('currentOwner').textContent = owner;
+            document.getElementById('currentDivAdmin2').textContent = dividendAddr;
+
+            // 分红合约信息
+            await refreshDividendDash();
+
+        } catch (err) {
+            console.error('刷新仪表盘失败:', err);
+            setStatus('刷新失败: ' + (err.reason || err.message), 'error');
+        }
+    }
+
+    async function refreshDividendDash() {
+        if (!dividendContract) return;
+        try {
+            const [admin, totalShares, totalDividends, totalUnpaid] = await Promise.all([
+                dividendContract.admin(),
+                dividendContract.totalShares(),
+                dividendContract.totalDividends(),
+                dividendContract.getUnpaidDividends()
+            ]);
+
+            // 检测 rewardToken
+            try {
+                dividendRewardTokenAddr = await dividendContract.rewardToken();
+                dividendIsBNB = (dividendRewardTokenAddr === ethers.constants.AddressZero);
+            } catch(e) {
+                // 旧版合约可能没有 rewardToken，保持默认
+            }
+
+            // 更新模式 UI
+            updateModeUI();
+
+            // 更新模式徽章
+            const modeBadge = document.getElementById('divModeBadge');
+            if (dividendIsBNB) {
+                modeBadge.innerHTML = '<span class="badge badge-warn">BNB 分红模式 🔥</span>';
+            } else {
+                modeBadge.innerHTML = '<span class="badge badge-on">USDT 分红模式 💵</span>';
+            }
+
+            if (dividendIsBNB) {
+                // BNB 模式：查询分红合约 BNB 余额
+                const bnbBalance = await provider.getBalance(dividendAddr);
+                const bnbBalStr = ethers.utils.formatEther(bnbBalance);
+                document.getElementById('dividendDash').innerHTML = `
+                    <div class="dash-item"><div class="val" style="font-size:0.7em;word-break:break-all;">${admin.slice(0,8)}...${admin.slice(-6)}</div><div class="lbl">Admin</div></div>
+                    <div class="dash-item"><div class="val">${ethers.utils.formatEther(totalShares)}</div><div class="lbl">总份额</div></div>
+                    <div class="dash-item"><div class="val green">${ethers.utils.formatEther(totalDividends)}</div><div class="lbl">总分红 BNB</div></div>
+                    <div class="dash-item"><div class="val yellow">${ethers.utils.formatEther(totalUnpaid)}</div><div class="lbl">待领分红 BNB</div></div>
+                    <div class="dash-item"><div class="val green">${parseFloat(bnbBalStr).toFixed(6)}</div><div class="lbl">合约 BNB 余额</div></div>
+                `;
+            } else {
+                // USDT 模式：查询分红合约 USDT 余额
+                let divUsdtBalance = '--';
+                try {
+                    const usdtAddr = dividendRewardTokenAddr !== ethers.constants.AddressZero
+                        ? dividendRewardTokenAddr
+                        : await dividendContract.usdtToken();
+                    const usdtErc20 = new ethers.Contract(usdtAddr, ["function balanceOf(address) view returns (uint256)"], provider);
+                    const balance = await usdtErc20.balanceOf(dividendAddr);
+                    divUsdtBalance = ethers.utils.formatUnits(balance, 6);
+                } catch(e) {}
+                document.getElementById('dividendDash').innerHTML = `
+                    <div class="dash-item"><div class="val" style="font-size:0.7em;word-break:break-all;">${admin.slice(0,8)}...${admin.slice(-6)}</div><div class="lbl">Admin</div></div>
+                    <div class="dash-item"><div class="val">${ethers.utils.formatEther(totalShares)}</div><div class="lbl">总份额</div></div>
+                    <div class="dash-item"><div class="val green">${ethers.utils.formatUnits(totalDividends, 6)}</div><div class="lbl">总分红 USDT</div></div>
+                    <div class="dash-item"><div class="val yellow">${ethers.utils.formatUnits(totalUnpaid, 6)}</div><div class="lbl">待领分红 USDT</div></div>
+                    <div class="dash-item"><div class="val green">${divUsdtBalance}</div><div class="lbl">合约 USDT 余额</div></div>
+                `;
+            }
+
+            document.getElementById('currentDivAdmin').textContent = admin;
+            document.getElementById('currentDivAdmin2').textContent = admin;
+        } catch (err) {
+            console.error('分红合约刷新失败:', err);
+        }
+    }
+
+    // ============ 通用合约调用 ============
+
+    async function adminCall(method, args) {
+        if (!tokenContract) { alert('请先加载合约！'); return; }
+        if (!confirm(`确认调用 ${method}(${args.map(a => JSON.stringify(a)).join(', ')}) ？`)) return;
+
+        try {
+            setStatus(`调用 ${method}... 请在钱包确认`, 'info');
+            const tx = await tokenContract[method](...args);
+            setStatus(`交易已提交，等待确认... Tx: ${tx.hash}`, 'info');
+            await tx.wait();
+            setStatus(`${method} 调用成功！`, 'success');
+            await refreshDashboard();
+        } catch (err) {
+            console.error(`${method} 失败:`, err);
+            setStatus(`${method} 失败: ${err.reason || err.message}`, 'error');
+        }
+    }
+
+    async function dividendCall(method, args) {
+        if (!dividendContract) { alert('请先加载合约！'); return; }
+        if (!confirm(`确认调用分红合约 ${method}(${args.map(a => JSON.stringify(a)).join(', ')}) ？`)) return;
+
+        try {
+            setStatus(`调用分红合约 ${method}... 请在钱包确认`, 'info');
+            const tx = await dividendContract[method](...args);
+            setStatus(`交易已提交，等待确认... Tx: ${tx.hash}`, 'info');
+            await tx.wait();
+            setStatus(`${method} 调用成功！`, 'success');
+            await refreshDashboard();
+        } catch (err) {
+            console.error(`${method} 失败:`, err);
+            setStatus(`${method} 失败: ${err.reason || err.message}`, 'error');
+        }
+    }
+
+    // ============ 交易管理 ============
+
+    async function setOpenMode() {
+        const mode = parseInt(document.getElementById('setOpenModeSelect').value);
+        const timestamp = parseInt(document.getElementById('setOpenModeTimestamp').value) || 0;
+        await adminCall('setOpenMode', [mode, timestamp]);
+    }
+
+    // ============ 税收管理 ============
+
+    function updateNewTaxDist(changedId) {
+        const ids = ['newMarketingShare', 'newBurnShare', 'newDividendShare', 'newLpShare'];
+        const valIds = ['newMarketingVal', 'newBurnVal', 'newDividendVal', 'newLpVal'];
+        const values = {};
+        ids.forEach(id => { values[id] = parseInt(document.getElementById(id).value); });
+
+        // 如果当前滑块导致总和超过100，自动钳制
+        const otherTotal = ids.reduce((sum, id) => id === changedId ? sum : sum + values[id], 0);
+        if (changedId && values[changedId] + otherTotal > 100) {
+            const clamped = 100 - otherTotal;
+            values[changedId] = Math.max(0, clamped);
+            document.getElementById(changedId).value = values[changedId];
+        }
+
+        // 动态更新每个滑块的 max
+        ids.forEach(id => {
+            const otherSum = ids.reduce((sum, oid) => oid === id ? sum : sum + values[oid], 0);
+            document.getElementById(id).max = 100 - otherSum;
+        });
+
+        ids.forEach((id, i) => {
+            document.getElementById(valIds[i]).textContent = values[id] + '%';
+        });
+
+        const total = ids.reduce((sum, id) => sum + values[id], 0);
+        const err = document.getElementById('newTaxDistError');
+        if (total !== 100) {
+            err.style.display = 'block';
+            err.textContent = '合计 ' + total + '%，必须为 100%';
+        } else {
+            err.style.display = 'none';
+        }
+    }
+
+    async function setTaxRates() {
+        const buyTax = Math.floor(parseFloat(document.getElementById('newBuyTax').value) * 100);
+        const sellTax = Math.floor(parseFloat(document.getElementById('newSellTax').value) * 100);
+        await adminCall('setTaxRates', [buyTax, sellTax]);
+    }
+
+    async function setTaxDistribution() {
+        const m = parseInt(document.getElementById('newMarketingShare').value);
+        const b = parseInt(document.getElementById('newBurnShare').value);
+        const d = parseInt(document.getElementById('newDividendShare').value);
+        const l = parseInt(document.getElementById('newLpShare').value);
+        if (m + b + d + l !== 100) {
+            alert('税收分配比例合计必须为 100%！');
+            return;
+        }
+        await adminCall('setTaxDistribution', [m * 100, b * 100, d * 100, l * 100]);
+    }
+
+    async function setMarketingWallet() {
+        const rawAddr = document.getElementById('newMarketingWallet').value.trim();
+        const addr = safeAddr(rawAddr, '营销钱包地址');
+        await adminCall('setMarketingWallet', [addr]);
+    }
+
+    async function setSwapThreshold() {
+        const val = document.getElementById('newSwapThreshold').value.trim();
+        if (!val) { alert('请输入阈值！'); return; }
+        const threshold = ethers.utils.parseEther(val);
+        await adminCall('setSwapThreshold', [threshold]);
+    }
+
+    // ============ Mint 价格管理 ============
+
+    async function setMintPrice() {
+        const val = document.getElementById('newMintPrice').value.trim();
+        if (!val) { alert('请输入 BNB Mint 价格！'); return; }
+        const price = ethers.utils.parseEther(val);
+        await adminCall('setMintPrice', [price]);
+    }
+
+    async function setMintPriceUSDT() {
+        const val = document.getElementById('newMintPriceUSDT').value.trim();
+        if (!val) { alert('请输入 USDT Mint 价格！'); return; }
+        const price = ethers.utils.parseUnits(val, 6);
+        await adminCall('setMintPriceUSDT', [price]);
+    }
+
+    // ============ 白名单 ============
+
+    async function checkWhitelist() {
+        const rawAddr = document.getElementById('checkWlAddr').value.trim();
+        const addr = safeAddr(rawAddr, '查询地址');
+        try {
+            const [isWl, hasMinted] = await Promise.all([
+                tokenContract.whitelist(addr),
+                tokenContract.hasMinted(addr)
+            ]);
+            document.getElementById('wlCheckResult').innerHTML =
+                `白名单: ${isWl ? '<span style="color:#2ecc71;">是</span>' : '<span style="color:#ff6b6b;">否</span>'} | 已Mint: ${hasMinted ? '<span style="color:#f1c40f;">是</span>' : '否'}`;
+        } catch (err) {
+            document.getElementById('wlCheckResult').innerHTML = '<span style="color:#ff6b6b;">查询失败</span>';
+        }
+    }
+
+    async function addWhitelist() {
+        const text = document.getElementById('wlAddAddresses').value.trim();
+        const addrs = text.split('\n').map(a => a.trim()).filter(a => a.startsWith('0x') && a.length >= 42).map(a => safeAddr(a, '白名单地址'));
+        if (addrs.length === 0) { alert('请输入至少一个有效地址！'); return; }
+        await adminCall('setWhitelist', [addrs, true]);
+    }
+
+    async function removeWhitelist() {
+        const text = document.getElementById('wlRemoveAddresses').value.trim();
+        const addrs = text.split('\n').map(a => a.trim()).filter(a => a.startsWith('0x') && a.length >= 42).map(a => safeAddr(a, '白名单地址'));
+        if (addrs.length === 0) { alert('请输入至少一个有效地址！'); return; }
+        await adminCall('setWhitelist', [addrs, false]);
+    }
+
+    // ============ 紧急提取 ============
+
+    async function rescueBNB() {
+        const toRaw = document.getElementById('rescueBnbTo').value.trim() || connectedAddress;
+        const to = safeAddr(toRaw, '接收地址');
+        const amount = document.getElementById('rescueBnbAmount').value.trim();
+        if (!amount) { alert('请输入金额！'); return; }
+        const weiAmount = ethers.utils.parseEther(amount);
+        await adminCall('rescueBNB', [to, weiAmount]);
+    }
+
+    async function rescueToken() {
+        const tokenAddrRaw = document.getElementById('rescueTokenAddr').value.trim();
+        const tokenAddr = safeAddr(tokenAddrRaw, '代币地址');
+        const toRaw = document.getElementById('rescueTokenTo').value.trim() || connectedAddress;
+        const to = safeAddr(toRaw, '接收地址');
+        const amount = document.getElementById('rescueTokenAmount').value.trim();
+        if (!amount) { alert('请输入金额！'); return; }
+        await adminCall('rescueToken', [tokenAddr, to, ethers.BigNumber.from(amount)]);
+    }
+
+    // ============ 分红合约 ============
+
+    async function checkDividend() {
+        const rawAddr = document.getElementById('divCheckAddr').value.trim();
+        const addr = safeAddr(rawAddr, '持币人地址');
+        try {
+            const [claimable, info] = await Promise.all([
+                dividendContract.getClaimableDividend(addr),
+                dividendContract.getShareholderInfo(addr)
+            ]);
+            if (dividendIsBNB) {
+                document.getElementById('divCheckResult').innerHTML =
+                    `份额: ${ethers.utils.formatEther(info.shares)} | 待领: ${ethers.utils.formatEther(claimable)} BNB | ` +
+                    `未结算: ${ethers.utils.formatEther(info.unpaid)} BNB`;
+            } else {
+                document.getElementById('divCheckResult').innerHTML =
+                    `份额: ${ethers.utils.formatEther(info.shares)} | 待领: ${ethers.utils.formatUnits(claimable, 6)} USDT | ` +
+                    `未结算: ${ethers.utils.formatUnits(info.unpaid, 6)} USDT`;
+            }
+        } catch (err) {
+            document.getElementById('divCheckResult').innerHTML = '<span style="color:#ff6b6b;">查询失败: ' + (err.reason || err.message) + '</span>';
+        }
+    }
+
+    async function setDividendAdmin() {
+        const rawAddr = document.getElementById('newDivAdmin').value.trim();
+        const addr = safeAddr(rawAddr, '新 Admin 地址');
+        await dividendCall('setAdmin', [addr]);
+    }
+
+    async function dividendWithdrawStuckUSDT() {
+        const toRaw = document.getElementById('divWithdrawUSDTTo').value.trim() || connectedAddress;
+        const to = safeAddr(toRaw, '接收地址');
+        const amount = document.getElementById('divWithdrawUSDTAmount').value.trim();
+        if (!amount) { alert('请输入金额！'); return; }
+        const usdtAmount = ethers.utils.parseUnits(amount, 6);
+        await dividendCall('withdrawStuckUSDT', [to, usdtAmount]);
+    }
+
+    async function dividendRescueToken() {
+        const tokenAddrRaw = document.getElementById('divRescueTokenAddr').value.trim();
+        const tokenAddr = safeAddr(tokenAddrRaw, '代币地址');
+        const toRaw = document.getElementById('divRescueTokenTo').value.trim() || connectedAddress;
+        const to = safeAddr(toRaw, '接收地址');
+        const amount = document.getElementById('divRescueTokenAmount').value.trim();
+        if (!amount) { alert('请输入金额！'); return; }
+        await dividendCall('rescueToken', [tokenAddr, to, ethers.BigNumber.from(amount)]);
+    }
+
+    async function dividendEmergencyWithdraw() {
+        if (!confirm('确认提取分红合约中的全部 USDT 到 Admin 钱包？此操作不可逆！')) return;
+        await dividendCall('emergencyWithdraw', []);
+    }
+
+    // ============ 权限管理 ============
+
+    async function transferOwnership() {
+        const rawAddr = document.getElementById('newOwnerAddr').value.trim();
+        const addr = safeAddr(rawAddr, '新 Owner 地址');
+        if (!confirm(`确认将主合约所有权转移给 ${addr}？此操作不可逆！`)) return;
+        await adminCall('transferOwnership', [addr]);
+    }
+
+    async function renounceOwnership() {
+        if (!confirm('确认放弃主合约所有权？此操作不可逆！放弃后无法管理合约！')) return;
+        if (!confirm('二次确认：真的要放弃所有权吗？')) return;
+        await adminCall('renounceOwnership', []);
+    }
+
+    // ============ UI 辅助 ============
+
+    function setStatus(msg, type) {
+        const bar = document.getElementById('statusBar');
+        const msgEl = document.getElementById('statusMsg');
+        bar.classList.add('show');
+        msgEl.className = 'status-msg status-' + type;
+        msgEl.innerHTML = msg;
+    }
+
+    function switchTab(tabName, el) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tabName).classList.add('active');
+        el.classList.add('active');
+    }
+
+    // ============ 初始化 ============
+    updateNewTaxDist();
+
+    // ============ Mint 页面链接 ============
+    function getMintLink() {
+        if (!tokenContract || !tokenAddr) {
+            setStatus('请先加载合约', 'error');
+            return null;
+        }
+        const network = document.getElementById('network') ? document.getElementById('network').value : '97';
+        const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+        return basePath + 'mint-ui.html?contract=' + tokenAddr + '&network=' + network;
+    }
+
+    function openMintPage() {
+        const link = getMintLink();
+        if (link) window.open(link, '_blank');
+    }
+
+    function copyMintLink() {
+        const link = getMintLink();
+        if (!link) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(link).then(() => {
+                setStatus('✅ Mint 链接已复制到剪贴板', 'success');
+            }).catch(() => {
+                fallbackCopyAdmin(link);
+            });
+        } else {
+            fallbackCopyAdmin(link);
+        }
+    }
+
+    function fallbackCopyAdmin(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand('copy');
+            setStatus('✅ Mint 链接已复制到剪贴板', 'success');
+        } catch (e) {
+            setStatus('复制失败，请手动复制: ' + text, 'error');
+        }
+        document.body.removeChild(ta);
+    }
+
+    // ============ 模式相关 UI 更新 ============
+
+    function updateModeUI() {
+        const isBNBMode = baseCurrencyMode === 0;
+
+        // Mint 管理：显示对应模式
+        const mintBnbSection = document.getElementById('mintBnbSection');
+        const mintUsdtSection = document.getElementById('mintUsdtSection');
+        if (mintBnbSection) mintBnbSection.style.display = isBNBMode ? 'block' : 'none';
+        if (mintUsdtSection) mintUsdtSection.style.display = isBNBMode ? 'none' : 'block';
+
+        // 分红合约：显示对应模式
+        const divBnbSection = document.getElementById('divBnbSection');
+        const divUsdtSection = document.getElementById('divUsdtSection');
+        if (divBnbSection) divBnbSection.style.display = dividendIsBNB ? 'block' : 'none';
+        if (divUsdtSection) divUsdtSection.style.display = dividendIsBNB ? 'none' : 'block';
+    }
+
+    // ============ BNB 分红模式：存入/提取 ============
+
+    async function depositBNBToDividend() {
+        if (!dividendContract || !signer) { alert('请先加载合约并连接钱包！'); return; }
+        const amount = document.getElementById('divDepositBnbAmount').value.trim();
+        if (!amount || parseFloat(amount) <= 0) { alert('请输入有效的 BNB 金额！'); return; }
+        if (!confirm(`确认向分红合约存入 ${amount} BNB？`)) return;
+        try {
+            setStatus('存入 BNB 到分红合约... 请在钱包确认', 'info');
+            const tx = await dividendContract.deposit({ value: ethers.utils.parseEther(amount) });
+            setStatus(`交易已提交，等待确认... Tx: ${tx.hash}`, 'info');
+            await tx.wait();
+            setStatus('BNB 存入成功！', 'success');
+            await refreshDashboard();
+        } catch (err) {
+            console.error('存入 BNB 失败:', err);
+            setStatus('存入 BNB 失败: ' + (err.reason || err.message), 'error');
+        }
+    }
+
+    async function withdrawDividendBNB() {
+        if (!dividendContract) { alert('请先加载合约！'); return; }
+        const toRaw = document.getElementById('divWithdrawBnbTo').value.trim() || connectedAddress;
+        const to = safeAddr(toRaw, '接收地址');
+        const amount = document.getElementById('divWithdrawBnbAmount').value.trim();
+        if (!amount || parseFloat(amount) <= 0) { alert('请输入有效的 BNB 金额！'); return; }
+        const weiAmount = ethers.utils.parseEther(amount);
+        await dividendCall('withdrawStuckRewards', [to, weiAmount]);
+    }
+
+    // ============ USDT 分红模式：存入 ============
+
+    async function depositUSDTToDividend() {
+        if (!dividendContract || !signer) { alert('请先加载合约并连接钱包！'); return; }
+        const amount = document.getElementById('divDepositUsdtAmount').value.trim();
+        if (!amount || parseFloat(amount) <= 0) { alert('请输入有效的 USDT 金额！'); return; }
+        if (!confirm(`确认向分红合约存入 ${amount} USDT？（需先 approve 再 depositUSDT）`)) return;
+        try {
+            // 获取 USDT 地址
+            const usdtAddr = dividendRewardTokenAddr !== ethers.constants.AddressZero
+                ? dividendRewardTokenAddr
+                : await dividendContract.usdtToken();
+            const usdtErc20 = new ethers.Contract(usdtAddr, [
+                "function approve(address spender, uint256 amount) returns (bool)",
+                "function allowance(address owner, address spender) view returns (uint256)"
+            ], signer);
+
+            const usdtAmount = ethers.utils.parseUnits(amount, 6);
+
+            // 检查并设置 approve
+            const allowance = await usdtErc20.allowance(connectedAddress, dividendAddr);
+            if (allowance.lt(usdtAmount)) {
+                setStatus('Approve USDT... 请在钱包确认', 'info');
+                const approveTx = await usdtErc20.approve(dividendAddr, usdtAmount);
+                setStatus('等待 Approve 确认...', 'info');
+                await approveTx.wait();
+                setStatus('Approve 成功，正在存入...', 'info');
+            }
+
+            // 调用 depositUSDT
+            setStatus('存入 USDT 到分红合约... 请在钱包确认', 'info');
+            const tx = await dividendContract.depositUSDT(usdtAmount);
+            setStatus(`交易已提交，等待确认... Tx: ${tx.hash}`, 'info');
+            await tx.wait();
+            setStatus('USDT 存入成功！', 'success');
+            await refreshDashboard();
+        } catch (err) {
+            console.error('存入 USDT 失败:', err);
+            setStatus('存入 USDT 失败: ' + (err.reason || err.message), 'error');
+        }
+    }
+</script>
+</body>
+</html>
