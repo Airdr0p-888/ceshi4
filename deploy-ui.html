@@ -1161,7 +1161,7 @@
             const rawMintPriceUSDT = baseCurrencyVal === 1 ? (parseFloat(document.getElementById('mintPriceUSDT').value) || 0) : 0;
 
             const mintPrice = ethers.utils.parseEther(rawMintPriceBNB.toString());
-            const mintPriceUSDT = ethers.utils.parseUnits(rawMintPriceUSDT.toString(), 6);
+            const mintPriceUSDT = ethers.utils.parseUnits(rawMintPriceUSDT.toString(), 18); // BSC USDT = 18 decimals
             const slots = parseInt(document.getElementById('totalSlots').value) || 100;
             const totalSupply = ethers.utils.parseUnits(
                 (getTotalSupplyRaw()).toString(), 18
@@ -1293,7 +1293,7 @@ async function main() {
         "${params.symbol}",                          // symbol
         ${params.baseCurrency},                      // baseCurrency: 0=BNB, 1=USDT
         hre.ethers.parseEther("${ethers.utils.formatEther(params.mintPrice)}"),  // mintPrice (BNB)
-        hre.ethers.parseUnits("${params.mintPriceUSDT}", 6),                    // mintPriceUSDT (6 decimals)
+        hre.ethers.parseUnits("${params.mintPriceUSDT}", 18),                   // mintPriceUSDT (18 decimals, BSC USDT)
         ${params.slots},                             // totalMintSlots
         hre.ethers.parseEther("${ethers.utils.formatEther(params.totalSupply)}"), // totalSupply
         "${params.router}",                          // router

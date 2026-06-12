@@ -901,7 +901,7 @@
 
                 // 显示 Mint 价格（只设置活动模式的价格）
                 const bnbPrice = parseFloat(ethers.utils.formatEther(mintPriceVal));
-                const usdtPrice = parseFloat(ethers.utils.formatUnits(mintPriceUSDTVal, 6));
+                const usdtPrice = parseFloat(ethers.utils.formatUnits(mintPriceUSDTVal, 18)); // BSC USDT = 18 decimals
                 if (isBNBMode) {
                     document.getElementById('mintPriceBNB').textContent = bnbPrice > 0 ? bnbPrice.toFixed(4) + ' BNB' : '未启用';
                 } else if (isUSDTMode) {
@@ -971,7 +971,7 @@
                 const dividendAmt = await contract.dividendOf(userAddress);
                 const dividendDisplay = isBNBMode 
                     ? parseFloat(ethers.utils.formatEther(dividendAmt))
-                    : parseFloat(ethers.utils.formatUnits(dividendAmt, 6));
+                    : parseFloat(ethers.utils.formatUnits(dividendAmt, 18)); // BSC USDT = 18 decimals
 
                 document.getElementById('dividendAmount').textContent = dividendDisplay.toFixed(6);
 
@@ -996,10 +996,10 @@
 
                     const totalDisplay = isBNBMode 
                         ? parseFloat(ethers.utils.formatEther(totalDiv))
-                        : parseFloat(ethers.utils.formatUnits(totalDiv, 6));
+                        : parseFloat(ethers.utils.formatUnits(totalDiv, 18)); // BSC USDT = 18 decimals
                     const distDisplay = isBNBMode
                         ? parseFloat(ethers.utils.formatEther(distributed))
-                        : parseFloat(ethers.utils.formatUnits(distributed, 6));
+                        : parseFloat(ethers.utils.formatUnits(distributed, 18)); // BSC USDT = 18 decimals
                     document.getElementById('dividendDetail').textContent =
                         '池总分红: ' + totalDisplay.toFixed(4) + ' ' + currencySymbol + ' | 已分配: ' + distDisplay.toFixed(4) + ' ' + currencySymbol;
                 } catch (detailErr) {

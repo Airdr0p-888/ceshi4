@@ -1221,7 +1221,7 @@
             const poolLabel = isBNBMode ? '底池: Token/BNB 🔥' : '底池: Token/USDT 💵';
             const mintPriceLabel = isBNBMode
                 ? ethers.utils.formatEther(mintPrice) + ' BNB'
-                : ethers.utils.formatUnits(mintPriceUSDT, 6) + ' USDT';
+                : ethers.utils.formatUnits(mintPriceUSDT, 18) + ' USDT'; // BSC USDT = 18 decimals
             const mintPriceLblTag = isBNBMode ? 'Mint 价格 (BNB)' : 'Mint 价格 (USDT)';
 
             document.getElementById('dashGrid').innerHTML = `
@@ -1254,7 +1254,7 @@
                 priceViewDisplay.textContent = ethers.utils.formatEther(mintPrice) + ' BNB';
             } else {
                 priceViewLabel.textContent = 'Mint 价格 (USDT)';
-                priceViewDisplay.textContent = ethers.utils.formatUnits(mintPriceUSDT, 6) + ' USDT';
+                priceViewDisplay.textContent = ethers.utils.formatUnits(mintPriceUSDT, 18) + ' USDT';
             }
             const perSlot = totalMintSlots > 0 ? totalSupply.mul(50).div(100).div(totalMintSlots) : ethers.BigNumber.from(0);
             document.getElementById('perSlotDisplay').textContent = ethers.utils.formatEther(perSlot) + ' ' + symbol;
@@ -1340,13 +1340,13 @@
                         : await dividendContract.usdtToken();
                     const usdtErc20 = new ethers.Contract(usdtAddr, ["function balanceOf(address) view returns (uint256)"], provider);
                     const balance = await usdtErc20.balanceOf(dividendAddr);
-                    divUsdtBalance = ethers.utils.formatUnits(balance, 6);
+                    divUsdtBalance = ethers.utils.formatUnits(balance, 18); // BSC USDT = 18 decimals
                 } catch(e) {}
                 document.getElementById('dividendDash').innerHTML = `
                     <div class="dash-item"><div class="val" style="font-size:0.7em;word-break:break-all;">${admin.slice(0,8)}...${admin.slice(-6)}</div><div class="lbl">Admin</div></div>
                     <div class="dash-item"><div class="val">${ethers.utils.formatEther(totalShares)}</div><div class="lbl">总份额</div></div>
-                    <div class="dash-item"><div class="val green">${ethers.utils.formatUnits(totalDividends, 6)}</div><div class="lbl">总分红 USDT</div></div>
-                    <div class="dash-item"><div class="val yellow">${ethers.utils.formatUnits(totalUnpaid, 6)}</div><div class="lbl">待领分红 USDT</div></div>
+                    <div class="dash-item"><div class="val green">${ethers.utils.formatUnits(totalDividends, 18)}</div><div class="lbl">总分红 USDT</div></div>
+                    <div class="dash-item"><div class="val yellow">${ethers.utils.formatUnits(totalUnpaid, 18)}</div><div class="lbl">待领分红 USDT</div></div>
                     <div class="dash-item"><div class="val green">${divUsdtBalance}</div><div class="lbl">合约 USDT 余额</div></div>
                 `;
             }
@@ -1481,7 +1481,7 @@
     async function setMintPriceUSDT() {
         const val = document.getElementById('newMintPriceUSDT').value.trim();
         if (!val) { alert('请输入 USDT Mint 价格！'); return; }
-        const price = ethers.utils.parseUnits(val, 6);
+        const price = ethers.utils.parseUnits(val, 18); // BSC USDT = 18 decimals
         await adminCall('setMintPriceUSDT', [price]);
     }
 
@@ -1553,8 +1553,8 @@
                     `未结算: ${ethers.utils.formatEther(info.unpaid)} BNB`;
             } else {
                 document.getElementById('divCheckResult').innerHTML =
-                    `份额: ${ethers.utils.formatEther(info.shares)} | 待领: ${ethers.utils.formatUnits(claimable, 6)} USDT | ` +
-                    `未结算: ${ethers.utils.formatUnits(info.unpaid, 6)} USDT`;
+                    `份额: ${ethers.utils.formatEther(info.shares)} | 待领: ${ethers.utils.formatUnits(claimable, 18)} USDT | ` +
+                    `未结算: ${ethers.utils.formatUnits(info.unpaid, 18)} USDT`;
             }
         } catch (err) {
             document.getElementById('divCheckResult').innerHTML = '<span style="color:#ff6b6b;">查询失败: ' + (err.reason || err.message) + '</span>';
@@ -1572,7 +1572,7 @@
         const to = safeAddr(toRaw, '接收地址');
         const amount = document.getElementById('divWithdrawUSDTAmount').value.trim();
         if (!amount) { alert('请输入金额！'); return; }
-        const usdtAmount = ethers.utils.parseUnits(amount, 6);
+        const usdtAmount = ethers.utils.parseUnits(amount, 18); // BSC USDT = 18 decimals
         await dividendCall('withdrawStuckUSDT', [to, usdtAmount]);
     }
 
@@ -1737,7 +1737,7 @@
                 "function allowance(address owner, address spender) view returns (uint256)"
             ], signer);
 
-            const usdtAmount = ethers.utils.parseUnits(amount, 6);
+            const usdtAmount = ethers.utils.parseUnits(amount, 18); // BSC USDT = 18 decimals
 
             // 检查并设置 approve
             const allowance = await usdtErc20.allowance(connectedAddress, dividendAddr);
